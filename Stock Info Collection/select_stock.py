@@ -1,5 +1,23 @@
+# coding=utf-8
+
 import psycopg2
-import stock_crawler
+import datetime
+from pandas.tseries.offsets import BDay
+
+
+def set_date():
+    while True:
+        today = datetime.datetime.now().strftime(format("%Y%m%d"))  # Get system date with YYYYMMDD format.
+        selected_date = input('請輸入欲查詢日期或按Enter選擇今天：')
+        if selected_date == '':
+            selected_date = today
+            break
+        else:
+            if not selected_date.isnumeric() or int(selected_date[0:4]) < 2000 or selected_date > today:
+                print("日期錯誤")
+            else:
+                break
+    return selected_date
 
 
 def select_stock(force, select_buy_sell, selected_date, cur):
@@ -59,21 +77,40 @@ def select_individual_stock(selected_date, cur):
         print('掰掰～祝您獲利滿滿！')
         quit()
     else:
-        cur.execute('SELECT * FROM stock WHERE stock_number=\'' + selected_stock_number + '\''
-                    ' AND trading_date = \'' + selected_date + '\'')
-        rows = cur.fetchall()
-        if len(rows) == 0:
+        selected_date_in_date_form = datetime.datetime.strptime(selected_date, '%Y%m%d')
+
+        prices_list = []
+        try:
+            for i in range(0, 6):
+                target_date = (selected_date_in_date_form - BDay(i)).strftime('%Y%m%d')
+                cur.execute('SELECT closing_price FROM stock WHERE stock_number= \'' + selected_stock_number + '\' '
+                            'AND trading_date = \'' + target_date + '\'')
+                prices = cur.fetchone()
+                for p in prices:
+                    prices_list.append(p)
+
+            cur.execute('SELECT stock_number, stock_name, foreign_capital_buy - foreign_capital_sell, '
+                        'trust_buy - trust_sell, closing_price, ' 
+                        '\'' + str(prices_list[0]*2 - prices_list[2]) + '\'  AS \"A\" ,'
+                        '\'' + str(prices_list[1]*2 - prices_list[3]) + '\'  AS \"B\" ,'
+                        '\'' + str(prices_list[2]*2 - prices_list[4]) + '\'  AS \"C\" '
+                        'FROM stock '
+                        'WHERE stock_number = \'' + selected_stock_number + '\' '
+                        'AND trading_date = \'' + selected_date + '\'')
+            rows = cur.fetchone()
+            print('代號'.rjust(10) + '名稱'.rjust(12) + '外資買超'.rjust(9) + '投信買超'.rjust(9),
+                  '收盤價'.rjust(8), 'A'.rjust(8), 'B'.rjust(11), 'C'.rjust(11))
+            for item in rows:
+                print(str(item).rjust(12), end='')
+            print()
+        except TypeError:
             print("查無此股票")
-        for row in rows:
-            print(row)
 
 
-def main():
+def main(inquired_date):
     connection = psycopg2.connect(database="StockInfoCollection", user='ryanjshih', password='ryanjshih',
                                   host="stockinfocollection.cbxgmr3mhdgg.ap-northeast-1.rds.amazonaws.com", port="5432")
     cursor = connection.cursor()
-
-    inquired_date = stock_crawler.set_date()
 
     while True:
         buy_sell = input("請輸入 B / S 選擇買賣超排行：")
@@ -92,4 +129,4 @@ def main():
     while True:
         select_individual_stock(inquired_date, cursor)
 
-main()
+main(set_date())

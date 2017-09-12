@@ -72,6 +72,7 @@ def read_stock_price_into_database(file, selected_date, conn, cur):
                             cur.execute('UPDATE stock SET ' + K + '=' + str(temp_dict[K])
                                         + ' where stock_number = \'' + line[0].strip() + '\''
                                         + ' and trading_date = \'' + selected_date + '\';')
+                        print(line)
                     except Exception as e:
                         print(line)
                         print(e)
@@ -85,6 +86,8 @@ def read_file_into_database(file, selected_date, conn, cur):
         for line in reader:
             if len(line) > 0:
                 if line[0].strip().isdigit() and len(line[0].strip()) == 4:
+                    cur.execute('DELETE FROM stock WHERE trading_date = \'' + selected_date + '\' '
+                                'AND stock_number = \'' + line[0] + '\'')
                     try:
                         cur.execute('INSERT INTO stock (trading_date, stock_number, stock_name, foreign_capital_buy, '
                                     'foreign_capital_sell, trust_buy, trust_sell) '
@@ -103,19 +106,20 @@ def read_file_into_database(file, selected_date, conn, cur):
                         pass
 
 
-def main():
-    inquired_date = set_date()
+def main(inquired_date):
     get_file(inquired_date)
 
     connection = psycopg2.connect(database="StockInfoCollection", user='ryanjshih', password='ryanjshih',
-                            host="stockinfocollection.cbxgmr3mhdgg.ap-northeast-1.rds.amazonaws.com", port="5432")
+                                  host="stockinfocollection.cbxgmr3mhdgg.ap-northeast-1.rds.amazonaws.com", port="5432")
     print("成功建立資料庫連線，開始寫入股票資料...")
     cursor = connection.cursor()
 
     read_file_into_database('TPEXtemp.csv', inquired_date, connection, cursor)
     read_file_into_database('TWSEtemp.csv', inquired_date, connection, cursor)
-    # read_stock_price_into_database("TWSEpricetemp.csv", inquired_date, connection, cursor)
-    # read_stock_price_into_database("TPEXpricetemp.csv", inquired_date, connection, cursor)
+    read_stock_price_into_database("TWSEpricetemp.csv", inquired_date, connection, cursor)
+    read_stock_price_into_database("TPEXpricetemp.csv", inquired_date, connection, cursor)
 
     connection.close()
     print("執行完畢！")
+
+main(set_date())
