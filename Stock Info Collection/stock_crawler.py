@@ -122,6 +122,5 @@ def main(inquired_date):
     connection.close()
     print("執行完畢！")
 
-for craw_date in ['20170912','20170911','20170908', '20170907', '20170906', '20170905', '20170904']:
-    main(craw_date)
+main(set_date())
 
