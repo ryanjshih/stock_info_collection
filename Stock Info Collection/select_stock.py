@@ -109,7 +109,7 @@ def select_individual_stock(selected_date, cur):
 
 def main(inquired_date):
     connection = psycopg2.connect(database="StockInfoCollection", user='ryanjshih', password='ryanjshih',
-                                  host="stockinfocollection.cbxgmr3mhdgg.ap-northeast-1.rds.amazonaws.com", port="5432")
+                                  host="stockinfocollection.cykru4k1tbli.ap-northeast-2.rds.amazonaws.com", port="5432")
     cursor = connection.cursor()
 
     while True:

@@ -110,7 +110,7 @@ def main(inquired_date):
     get_file(inquired_date)
 
     connection = psycopg2.connect(database="StockInfoCollection", user='ryanjshih', password='ryanjshih',
-                                  host="stockinfocollection.cbxgmr3mhdgg.ap-northeast-1.rds.amazonaws.com", port="5432")
+                                  host="stockinfocollection.cykru4k1tbli.ap-northeast-2.rds.amazonaws.com", port="5432")
     print("成功建立資料庫連線，開始寫入股票資料...")
     cursor = connection.cursor()
 
@@ -122,4 +122,6 @@ def main(inquired_date):
     connection.close()
     print("執行完畢！")
 
-main(set_date())
+for craw_date in ['20170912','20170911','20170908', '20170907', '20170906', '20170905', '20170904']:
+    main(craw_date)
+
