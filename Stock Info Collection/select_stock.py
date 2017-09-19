@@ -52,7 +52,7 @@ def select_stock(force, select_buy_sell, selected_date, cur):
 def compare_forces(select_buy_sell, selected_date, cur):
     cur.execute('select t1.stock_number, t1.stock_name, "外資買超", "投信買超" from '
                 '(select stock_number, stock_name, trust_buy - trust_sell as \"投信買超\" '
-                'from stock where trading_date = \'20170908\' '
+                'from stock where trading_date = \'' + selected_date + '\''
                 'order by 3 ' + select_buy_sell +
                 ' limit 30) t1 '
                 'inner join '
